@@ -1180,6 +1180,7 @@ public class OFMatch implements Cloneable {
             }
         }
         //@cz
+        //for some reason, we must sort match fields by type value
         List<OFMatchField> mf=m.getMatchFields();
         for(int i1=0;i1<mf.size();i1++){
         	for(int i2=0;i2+1<mf.size()-i1;i2++){
