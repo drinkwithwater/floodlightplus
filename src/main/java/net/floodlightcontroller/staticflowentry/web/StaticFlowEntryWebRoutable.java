@@ -34,6 +34,7 @@ public class StaticFlowEntryWebRoutable implements RestletRoutable {
         router.attach("/json/delete", StaticFlowEntryDeleteResource.class);
         router.attach("/clear/{switch}/json", ClearStaticFlowEntriesResource.class);
         router.attach("/list/{switch}/json", ListStaticFlowEntriesResource.class);
+        router.attach("/test", TestResource.class);
         return router;
     }
 
