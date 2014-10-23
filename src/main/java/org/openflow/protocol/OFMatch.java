@@ -973,6 +973,56 @@ public class OFMatch implements Cloneable {
         return this;
     }
 
+    //@cz
+    //the main match fields include src-ip and dst-ip
+    public OFMatch ipMatchLoadFromPacket(byte[] packetData, int inPort) {
+
+        short scratch;
+        short dataLayerType = 0;
+        byte[] dataLayerAddress = new byte[OFPhysicalPort.OFP_ETH_ALEN];
+
+        int transportOffset = 34;
+        ByteBuffer packetDataBB = ByteBuffer.wrap(packetData);
+        int limit = packetDataBB.limit();
+
+        setInPort(inPort);
+
+        //TODO: Extend to support more packet types
+        assert (limit >= 14);
+        //get but not set
+        packetDataBB.get(dataLayerAddress);
+        packetDataBB.get(dataLayerAddress);
+        // dl dst
+        // dl src
+        // dl type
+        dataLayerType = packetDataBB.getShort();
+        setDataLayerType(dataLayerType);
+        
+
+        //TODO: Add support for IPv6
+        switch (dataLayerType) {
+        case ETH_TYPE_IPV4: // ipv4
+            // check packet length
+            scratch = packetDataBB.get();
+            scratch = (short) (0xf & scratch);
+            transportOffset = (packetDataBB.position() - 1) + (scratch * 4);
+            // nw tos (dscp and ecn)
+            packetDataBB.get();//setNetworkTypeOfService(packetDataBB.get());
+            // nw protocol
+            packetDataBB.position(packetDataBB.position() + 7);
+            packetDataBB.get();//networkProtocol = packetDataBB.get();
+            //setNetworkProtocol(networkProtocol);
+            // nw src
+            packetDataBB.position(packetDataBB.position() + 2);
+            setNetworkSource(dataLayerType, packetDataBB.getInt());
+            // nw dst
+            setNetworkDestination(dataLayerType, packetDataBB.getInt());
+            packetDataBB.position(transportOffset);
+            break;
+        }
+
+        return this;
+    }
     /* (non-Javadoc)
      * @see java.lang.Object#toString()
      */
@@ -1004,7 +1054,8 @@ public class OFMatch implements Cloneable {
 
         if (values.length >= 2) 
         	prefix = Integer.valueOf(values[1]);
-        int mask = (Integer.MAX_VALUE - 1) << (32 - prefix);
+        //@cz
+        int mask = (0xffffffff) << (32 - prefix);
         m.setField(which, ip, mask);
     }
 
@@ -1127,6 +1178,20 @@ public class OFMatch implements Cloneable {
                                                    + tokens[i] + " parsing "
                                                    + match);
             }
+        }
+        //@cz
+        List<OFMatchField> mf=m.getMatchFields();
+        for(int i1=0;i1<mf.size();i1++){
+        	for(int i2=0;i2+1<mf.size()-i1;i2++){
+        		OFMatchField ma=mf.get(i2);
+        		OFMatchField mb=mf.get(i2+1);
+        		boolean bigger=
+        				(ma.getType().getValue()>mb.getType().getValue());
+        		if(bigger){
+        			mf.set(i2+1, ma);
+        			mf.set(i2, mb);
+        		}
+        	}
         }
         return m;
     }

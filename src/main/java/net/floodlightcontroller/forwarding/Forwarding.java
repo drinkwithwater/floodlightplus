@@ -41,6 +41,7 @@ import net.floodlightcontroller.core.module.IFloodlightService;
 import net.floodlightcontroller.core.util.AppCookie;
 import net.floodlightcontroller.counter.ICounterStoreService;
 import net.floodlightcontroller.packet.Ethernet;
+import net.floodlightcontroller.packet.IPv4;
 import net.floodlightcontroller.routing.ForwardingBase;
 import net.floodlightcontroller.routing.IRoutingDecision;
 import net.floodlightcontroller.routing.IRoutingService;
@@ -162,6 +163,15 @@ public class Forwarding extends ForwardingBase implements IFloodlightModule {
                                  boolean requestFlowRemovedNotifn) {
         OFMatch match = new OFMatch();
         match.loadFromPacket(pi.getPacketData(), pi.getInPort());
+
+        //@cz
+        //use ip match instead of mac match
+        Ethernet eth = IFloodlightProviderService.bcStore.get(cntx,
+                                   IFloodlightProviderService.CONTEXT_PI_PAYLOAD);
+        if(eth.getPayload() instanceof IPv4){
+        	match=new OFMatch();
+        	match.ipMatchLoadFromPacket(pi.getPacketData(), pi.getInPort());
+        }
 
         // Check if we have the location of the destination
         IDevice dstDevice =

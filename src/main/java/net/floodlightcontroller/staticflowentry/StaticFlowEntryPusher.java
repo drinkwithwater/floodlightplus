@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -55,7 +56,13 @@ import org.openflow.protocol.OFFlowMod;
 import org.openflow.protocol.OFFlowRemoved;
 import org.openflow.protocol.OFMatch;
 import org.openflow.protocol.OFMessage;
+import org.openflow.protocol.OFOXMFieldType;
+import org.openflow.protocol.OFPacketOut;
 import org.openflow.protocol.OFType;
+import org.openflow.protocol.factory.OFInstructionFactory;
+import org.openflow.protocol.instruction.OFInstruction;
+import org.openflow.protocol.instruction.OFInstructionGotoTable;
+import org.openflow.protocol.instruction.OFInstructionType;
 import org.openflow.util.HexString;
 import org.openflow.util.U16;
 import org.slf4j.Logger;
@@ -102,12 +109,13 @@ public class StaticFlowEntryPusher
     public static final String COLUMN_TP_DST = "tp_dst";
     public static final String COLUMN_TP_SRC = "tp_src";
     public static final String COLUMN_ACTIONS = "actions";
+    public static final String COLUMN_INSTRUCTIONS = "instructions";
     public static String ColumnNames[] = { COLUMN_NAME, COLUMN_SWITCH,
             COLUMN_ACTIVE, COLUMN_IDLE_TIMEOUT, COLUMN_HARD_TIMEOUT,
             COLUMN_PRIORITY, COLUMN_COOKIE, COLUMN_WILDCARD, COLUMN_IN_PORT,
             COLUMN_DL_SRC, COLUMN_DL_DST, COLUMN_DL_VLAN, COLUMN_DL_VLAN_PCP,
             COLUMN_DL_TYPE, COLUMN_NW_TOS, COLUMN_NW_PROTO, COLUMN_NW_SRC,
-            COLUMN_NW_DST, COLUMN_TP_DST, COLUMN_TP_SRC, COLUMN_ACTIONS };
+            COLUMN_NW_DST, COLUMN_TP_DST, COLUMN_TP_SRC, COLUMN_ACTIONS, COLUMN_INSTRUCTIONS };
 
 
     protected IFloodlightProviderService floodlightProvider;
@@ -271,6 +279,10 @@ public class StaticFlowEntryPusher
             return;
         }
         // most error checking done with ClassCastException
+        flowMod.setTableId((byte)0);
+        flowMod.setCookie(0);
+        flowMod.setBufferId(OFPacketOut.BUFFER_ID_NONE);
+        log.info("cz-------------------test");
         try {
             // first, snag the required entries, for debugging info
             switchName = (String) row.get(COLUMN_SWITCH);
@@ -305,6 +317,10 @@ public class StaticFlowEntryPusher
                                     entryName));
                 } else if (key.equals(COLUMN_PRIORITY)) {
                     flowMod.setPriority(U16.t(Integer.valueOf((String) row.get(COLUMN_PRIORITY))));
+                } else if (key.equals(COLUMN_INSTRUCTIONS)) {
+                	List<OFInstruction> tempI=new ArrayList<OFInstruction>();
+                	tempI.add(new OFInstructionGotoTable((byte)1));
+                	flowMod.setInstructions(tempI);
                 } else { // the rest of the keys are for OFMatch().fromString()
                     if (matchString.length() > 0)
                         matchString.append(",");
@@ -326,9 +342,16 @@ public class StaticFlowEntryPusher
         String match = matchString.toString();
         try {
             ofMatch = OFMatch.fromString(match);
+            log.info("ofmod match string : "+match);
+            log.info("ofmod match string : "+ofMatch.toString());
+
+            EnumSet<OFOXMFieldType> nonWildcards = EnumSet.of(OFOXMFieldType.IN_PORT, OFOXMFieldType.ETH_TYPE,
+                                             OFOXMFieldType.IPV4_SRC, OFOXMFieldType.IPV4_DST);
+            ofMatch.setNonWildcards(nonWildcards);
+
             flowMod.setMatch(ofMatch);
         } catch (IllegalArgumentException e) {
-            log.debug(
+            log.info(
                     "ignoring flow entry {} on switch {} with illegal OFMatch() key: "
                             + match, entryName, switchName);
             return;
