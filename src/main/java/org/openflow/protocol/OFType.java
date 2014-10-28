@@ -6,6 +6,10 @@ import org.openflow.util.U8;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import edu.tsinghua.sfa.protocol.SFAAtEntryMod;
+import edu.tsinghua.sfa.protocol.SFAStEntryMod;
+import edu.tsinghua.sfa.protocol.SFATableCreate;
+
 /**
  * List of OpenFlow types and mappings to wire protocol value and derived
  * classes
@@ -166,6 +170,25 @@ public enum OFType {
                             @Override
                             public OFMessage instantiate() {
                                 return new OFMeterMod();
+                            }}),
+
+    //@cz
+    SFA_TABLE_CREATE    (30, OFMessage.class, new Instantiable<OFMessage>() {
+                            @Override
+                            public OFMessage instantiate() {
+                                return new SFATableCreate();
+                            }}),
+
+    SFA_ST_ENTRY_MOD    (30, OFMessage.class, new Instantiable<OFMessage>() {
+                            @Override
+                            public OFMessage instantiate() {
+                                return new SFAStEntryMod();
+                            }}),
+
+    SFA_AT_ENTRY_MOD    (30, OFMessage.class, new Instantiable<OFMessage>() {
+                            @Override
+                            public OFMessage instantiate() {
+                                return new SFAAtEntryMod();
                             }});
 
     protected static Logger log = LoggerFactory.getLogger(OFType.class);
