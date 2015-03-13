@@ -49,6 +49,7 @@ import org.openflow.protocol.instruction.OFInstruction;
 import org.openflow.protocol.instruction.OFInstructionActions;
 import org.openflow.protocol.instruction.OFInstructionApplyActions;
 import org.openflow.protocol.action.OFAction;
+import org.openflow.protocol.action.OFActionDecrementNwTTL;
 import org.openflow.protocol.action.OFActionSetField;
 import org.openflow.protocol.action.OFActionSetQueue;
 import org.openflow.protocol.action.OFActionOutput;
@@ -385,6 +386,9 @@ public class StaticFlowEntries {
                 else if (action.equals("set-udp-dport")) {
                     subaction_struct = decode_set_udp_dport(subaction, log);
                 }
+                else if(action.equals("dec-ip-ttl")){
+                    subaction_struct = decode_dec_ip_ttl(subaction, log);
+                } //@cz : add dec_ip_ttl action
                 else {
                     log.error("Unexpected action '{}', '{}'", action, subaction);
                 }
@@ -722,6 +726,23 @@ public class StaticFlowEntries {
                     return null;
                 }
             }
+        }
+        else {
+            log.debug("Invalid action: '{}'", subaction);
+            return null;
+        }
+
+        return sa;
+    }
+
+    //@cz
+    private static OFAction decode_dec_ip_ttl(String subaction, Logger log) {
+        OFAction sa = null;
+        Matcher n = Pattern.compile("dec-ip-ttl").matcher(subaction);
+        
+        if (n.matches()) {
+            sa = new OFActionDecrementNwTTL();
+            log.debug("action {}", sa);
         }
         else {
             log.debug("Invalid action: '{}'", subaction);

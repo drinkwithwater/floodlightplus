@@ -318,6 +318,7 @@ public class StaticFlowEntryPusher
                 } else if (key.equals(COLUMN_PRIORITY)) {
                     flowMod.setPriority(U16.t(Integer.valueOf((String) row.get(COLUMN_PRIORITY))));
                 } else if (key.equals(COLUMN_INSTRUCTIONS)) {
+                	//@cz dosth for sfa
                 	List<OFInstruction> tempI=new ArrayList<OFInstruction>();
                 	tempI.add(new OFInstructionGotoTable((byte)1));
                 	flowMod.setInstructions(tempI);

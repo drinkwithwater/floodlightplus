@@ -13,14 +13,14 @@ import org.openflow.util.U32;
 
 /**
  * Represents an ofp_match structure
- * 
+ *
  * @author Srini Seetharaman (srini.seetharaman@gmail.com)
- * 
+ *
  */
 
 public class OFMatch implements Cloneable {
     /**
-     * 
+     *
      */
     public static int MINIMUM_LENGTH = 8;
 
@@ -29,18 +29,18 @@ public class OFMatch implements Cloneable {
     public static final short ETH_TYPE_ARP = (short)0x806;
     public static final short ETH_TYPE_VLAN = (short)0x8100;
     public static final short ETH_TYPE_LLDP = (short)0x88cc;
-    public static final short ETH_TYPE_MPLS_UNICAST = (short)0x8847;    
-    public static final short ETH_TYPE_MPLS_MULTICAST = (short)0x8848;    
+    public static final short ETH_TYPE_MPLS_UNICAST = (short)0x8847;
+    public static final short ETH_TYPE_MPLS_MULTICAST = (short)0x8848;
 
     public static final byte IP_PROTO_ICMP = 0x1;
     public static final byte IP_PROTO_TCP = 0x6;
     public static final byte IP_PROTO_UDP = 0x11;
     public static final byte IP_PROTO_SCTP = (byte)0x84;
-    
+
     enum OFMatchType {
         STANDARD, OXM
     }
-        
+
     // Note: Only supporting OXM and OpenFlow_Basic matches
     public enum OFMatchClass {
         NXM_0                ((short)0x0000),
@@ -105,7 +105,7 @@ public class OFMatch implements Cloneable {
 
     /**
      * Check if a particular match field exists
-     * @return boolean indicating if the field value exists 
+     * @return boolean indicating if the field value exists
      */
     public boolean fieldExists(OFOXMFieldType matchType) {
         for (OFMatchField matchField: matchFields) {
@@ -322,7 +322,7 @@ public class OFMatch implements Cloneable {
     /**
      * Set nw_tos OFMatch stores the DSCP and ECN separately
      *
-     * @param networkTypeOfService TOS value with 6-bit DSCP value (0-63) 
+     * @param networkTypeOfService TOS value with 6-bit DSCP value (0-63)
      * in higher significant bits and ECN in the lower 2 bits
      */
     public OFMatch setNetworkTypeOfService(byte networkTypeOfService) {
@@ -374,7 +374,7 @@ public class OFMatch implements Cloneable {
      * @param networkDestination destination IP address
      */
     public OFMatch setNetworkDestination(short dataLayerType, int networkDestination) {
-    	switch (dataLayerType) {    		
+    	switch (dataLayerType) {
 		    case ETH_TYPE_IPV4:
 		        this.setField(OFOXMFieldType.IPV4_DST, networkDestination);
 		        break;
@@ -391,7 +391,7 @@ public class OFMatch implements Cloneable {
     /**
      * Set nw_dst and nw_dst_mask
      *
-     * @param networkDestination destination IP address 
+     * @param networkDestination destination IP address
      * @param networkMask network mask
      */
     public OFMatch setNetworkDestinationMask(int networkDestination, int networkMask) {
@@ -445,7 +445,7 @@ public class OFMatch implements Cloneable {
      */
     // TODO: Add support for IPv6
     public OFMatch setNetworkSource(short dataLayerType, int networkSource) {
-    	switch (dataLayerType) {    		
+    	switch (dataLayerType) {
 		    case ETH_TYPE_IPV4:
 		        this.setField(OFOXMFieldType.IPV4_SRC, networkSource);
 		        break;
@@ -459,7 +459,7 @@ public class OFMatch implements Cloneable {
     /**
      * Set nw_src and nw_src_mask
      *
-     * @param networkSource source IP address 
+     * @param networkSource source IP address
      * @param networkMask network mask
      */
     public OFMatch setNetworkSourceMask(int networkSource, int networkMask) {
@@ -590,9 +590,9 @@ public class OFMatch implements Cloneable {
     public short getMatchLength() {
         return matchLength;
     }
-    
+
     /** Sets match field. In case of existing field, checks for existing value
-     * 
+     *
      * @param matchField Check for uniqueness of field and add matchField
      */
     public void setField(OFMatchField newMatchField) {
@@ -638,7 +638,7 @@ public class OFMatch implements Cloneable {
         //Recalculate lengths
         this.matchLength = 4; //No padding
         if (matchFields != null)
-            for (OFMatchField newMatchField: this.matchFields) 
+            for (OFMatchField newMatchField: this.matchFields)
                 this.matchLength += newMatchField.getLength();
         this.length = U16.t(8*((this.matchLength + 7)/8)); //includes padding
         return this;
@@ -650,9 +650,9 @@ public class OFMatch implements Cloneable {
      * if null all fields are wildcarded
      */
     public OFMatch setNonWildcards(Set<OFOXMFieldType> nonWildcardedFieldTypes) {
-        if (nonWildcardedFieldTypes == null) 
+        if (nonWildcardedFieldTypes == null)
             setMatchFields(null);
-        else if (nonWildcardedFieldTypes.size() == 0) 
+        else if (nonWildcardedFieldTypes.size() == 0)
             setMatchFields(null);
         else {
             List <OFMatchField> newMatchFields = new ArrayList<OFMatchField>();
@@ -691,7 +691,7 @@ public class OFMatch implements Cloneable {
         if (type == OFMatchType.OXM) {
             int padLength = length - matchLength;
             end += padLength; // including pad
-            
+
             if (data.remaining() < remaining)
                 remaining = data.remaining();
             this.matchFields = new ArrayList<OFMatchField>();
@@ -703,7 +703,7 @@ public class OFMatch implements Cloneable {
             }
         } else {
             this.setField(OFOXMFieldType.IN_PORT, data.getInt());
-            wildcards = data.getInt(); 
+            wildcards = data.getInt();
 
             if ((wildcards & OFMatchWildcardMask.ALL.getValue()) == 0) {
                 data.position(end);
@@ -713,7 +713,7 @@ public class OFMatch implements Cloneable {
             data.get(dataLayerAddress);
             data.get(dataLayerAddressMask);
             this.setField(OFOXMFieldType.ETH_SRC, dataLayerAddress.clone(), dataLayerAddressMask.clone());
-        
+
             data.get(dataLayerAddress);
             data.get(dataLayerAddressMask);
             this.setField(OFOXMFieldType.ETH_DST, dataLayerAddress.clone(), dataLayerAddressMask.clone());
@@ -722,26 +722,26 @@ public class OFMatch implements Cloneable {
                 setDataLayerVirtualLan(data.getShort());
             else
                 data.getShort(); //skip
-                
+
             if ((wildcards & OFMatchWildcardMask.DL_VLAN_PCP.getValue()) == 0)
                 setDataLayerVirtualLanPriorityCodePoint(data.get());
             else
                 data.get(); //skip
 
             data.get(); //pad
-            
+
             if ((wildcards & OFMatchWildcardMask.DL_TYPE.getValue()) == 0) {
                 dataLayerType = data.getShort();
                 setDataLayerType(dataLayerType);
             } else
                 data.getShort(); //skip
 
-            if ((dataLayerType != ETH_TYPE_IPV4) && (dataLayerType != ETH_TYPE_ARP) && (dataLayerType != ETH_TYPE_VLAN) && 
+            if ((dataLayerType != ETH_TYPE_IPV4) && (dataLayerType != ETH_TYPE_ARP) && (dataLayerType != ETH_TYPE_VLAN) &&
             		(dataLayerType != ETH_TYPE_MPLS_UNICAST) && (dataLayerType != ETH_TYPE_MPLS_MULTICAST)) {
                 data.position(end);
                 return;
             }
-            
+
             if ((wildcards & OFMatchWildcardMask.NW_TOS.getValue()) == 0) {
             	networkTOS = data.get();
                 setNetworkTypeOfService(networkTOS);
@@ -776,22 +776,22 @@ public class OFMatch implements Cloneable {
 
             mplsLabel = data.getInt();
             mplsTC = data.get();
-            if ((dataLayerType == ETH_TYPE_MPLS_UNICAST) ||  
+            if ((dataLayerType == ETH_TYPE_MPLS_UNICAST) ||
             		(dataLayerType == ETH_TYPE_MPLS_MULTICAST)) {
-            	if ((wildcards & OFMatchWildcardMask.MPLS_LABEL.getValue()) == 0) 
+            	if ((wildcards & OFMatchWildcardMask.MPLS_LABEL.getValue()) == 0)
             		this.setField(OFOXMFieldType.MPLS_LABEL, mplsLabel);
             	if ((wildcards & OFMatchWildcardMask.MPLS_TC.getValue()) == 0)
             		this.setField(OFOXMFieldType.MPLS_TC, mplsTC);
-            } 
-            
+            }
+
             data.get(); //pad
             data.get(); //pad
             data.get(); //pad
-            
-            this.setField(OFOXMFieldType.METADATA, data.getLong(), data.getLong());            
+
+            this.setField(OFOXMFieldType.METADATA, data.getLong(), data.getLong());
         }
-        
-        data.position(end); 
+
+        data.position(end);
     }
 
     public void writeTo(ByteBuffer data) {
@@ -799,9 +799,9 @@ public class OFMatch implements Cloneable {
         data.putShort((short)this.type.ordinal());
         data.putShort(matchLength); //length does not include padding
         if (matchFields != null)
-            for (OFMatchField matchField : matchFields) 
+            for (OFMatchField matchField : matchFields)
                 matchField.writeTo(data);
-        
+
         int padLength = 8*((matchLength + 7)/8) - matchLength;
         for (;padLength>0;padLength--)
             data.put((byte)0); //pad
@@ -856,7 +856,7 @@ public class OFMatch implements Cloneable {
     /**
      * Load and return a new OFMatch based on supplied packetData, see
      * {@link #loadFromPacket(byte[], short)} for details.
-     * 
+     *
      * @param packetData
      * @param inputPort
      * @return
@@ -869,13 +869,13 @@ public class OFMatch implements Cloneable {
     /**
      * Initializes this OFMatch structure with the corresponding data from the
      * specified packet.
-     * 
+     *
      * Must specify the input port, to ensure that this.in_port is set
      * correctly.
-     * 
+     *
      * Specify OFPort.NONE or OFPort.ANY if input port not applicable or
      * available
-     * 
+     *
      * @param packetData
      *            The packet's data
      * @param inputPort
@@ -904,7 +904,7 @@ public class OFMatch implements Cloneable {
         // dl type
         dataLayerType = packetDataBB.getShort();
         setDataLayerType(dataLayerType);
-        
+
         if (dataLayerType == (short) ETH_TYPE_VLAN) { // need cast to avoid signed
             // has vlan tag
             scratch = packetDataBB.getShort();
@@ -933,7 +933,7 @@ public class OFMatch implements Cloneable {
             setNetworkDestination(dataLayerType, packetDataBB.getInt());
             packetDataBB.position(transportOffset);
             break;
-            
+
         case ETH_TYPE_ARP: // arp
             int arpPos = packetDataBB.position();
             // opcode
@@ -947,15 +947,15 @@ public class OFMatch implements Cloneable {
                 this.setField(OFOXMFieldType.ARP_SPA, packetDataBB.getInt(arpPos + 14));
                 // nw dst
                 this.setField(OFOXMFieldType.ARP_TPA, packetDataBB.getInt(arpPos + 24));
-            } 
+            }
             return this;
-            
+
         default: //No OXM field added
             return this;
         }
 
         switch (networkProtocol) {
-        case IP_PROTO_ICMP: 
+        case IP_PROTO_ICMP:
             // icmp type
             this.setField(OFOXMFieldType.ICMPV4_TYPE, packetDataBB.get());
             // code
@@ -963,7 +963,7 @@ public class OFMatch implements Cloneable {
             break;
         case IP_PROTO_TCP:
         case IP_PROTO_UDP:
-        case IP_PROTO_SCTP: 
+        case IP_PROTO_SCTP:
             setTransportSource(networkProtocol, packetDataBB.getShort());
             setTransportDestination(networkProtocol, packetDataBB.getShort());
             break;
@@ -997,7 +997,7 @@ public class OFMatch implements Cloneable {
         // dl type
         dataLayerType = packetDataBB.getShort();
         setDataLayerType(dataLayerType);
-        
+
 
         //TODO: Add support for IPv6
         switch (dataLayerType) {
@@ -1052,7 +1052,7 @@ public class OFMatch implements Cloneable {
         ip += Integer.valueOf(ip_str[3]);
         int prefix = 32; // all bits are fixed, by default
 
-        if (values.length >= 2) 
+        if (values.length >= 2)
         	prefix = Integer.valueOf(values[1]);
         //@cz
         int mask = (0xffffffff) << (32 - prefix);
@@ -1106,12 +1106,12 @@ public class OFMatch implements Cloneable {
         if (match.equals("") || match.equalsIgnoreCase("any")
             || match.equalsIgnoreCase("all") || match.equals("[]"))
         	match = "OFMatch[]";
-        
+
         String[] tokens = match.split("[\\[,\\]]");
         String[] values;
         byte networkProtocol = 0;
         int initArg = 0;
-        if (tokens[0].equals("OFMatch")) 
+        if (tokens[0].equals("OFMatch"))
         	initArg = 1;
         int i;
         for (i = initArg; i < tokens.length; i++) {
@@ -1137,13 +1137,13 @@ public class OFMatch implements Cloneable {
                     m.setDataLayerType(U16.t(Integer.valueOf(values[1].replaceFirst("0x", ""), 16)));
                 else
                     m.setDataLayerType(U16.t(Integer.valueOf(values[1])));
-            } else if (values[0].equals(OFOXMFieldType.VLAN_VID.getName()) 
+            } else if (values[0].equals(OFOXMFieldType.VLAN_VID.getName())
             		|| values[0].equals("dl_vlan")) {
                 if (values[1].startsWith("0x"))
                     m.setDataLayerVirtualLan(U16.t(Integer.valueOf(values[1].replaceFirst("0x", ""), 16)));
                 else
                     m.setDataLayerVirtualLan(U16.t(Integer.valueOf(values[1])));
-            } else if (values[0].equals(OFOXMFieldType.VLAN_PCP.getName()) 
+            } else if (values[0].equals(OFOXMFieldType.VLAN_PCP.getName())
             		|| values[0].equals("dl_vlan_pcp")) {
                 m.setDataLayerVirtualLanPriorityCodePoint(U8.t(Short.valueOf(values[1])));
             } else if (values[0].equals(OFOXMFieldType.IPV4_DST.getName())
@@ -1158,7 +1158,7 @@ public class OFMatch implements Cloneable {
                 else
                 	networkProtocol = U8.t(Short.valueOf(values[1]));
             	m.setNetworkProtocol(networkProtocol);
-            } else if (values[0].equals(OFOXMFieldType.IP_DSCP.getName()) 
+            } else if (values[0].equals(OFOXMFieldType.IP_DSCP.getName())
             		|| values[0].equals("nw_tos")) {
                 m.setNetworkTypeOfService(U8.t(Short.valueOf(values[1])));
             } else if (values[0].equals(OFOXMFieldType.TCP_DST.getName())
@@ -1196,4 +1196,4 @@ public class OFMatch implements Cloneable {
         }
         return m;
     }
-} 
+}
